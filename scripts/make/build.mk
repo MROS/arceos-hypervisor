@@ -2,9 +2,6 @@
 
 $(OUT_DIR):
 	mkdir -p $@
-ifneq ($(VM),)
-	mkdir -p apps/hv/guest/$(APP_NAME)
-endif 
 
 ifeq ($(APP_LANG), c)
   include ulib/c_libax/build.mk
@@ -27,6 +24,8 @@ endif
 $(OUT_BIN): _cargo_build $(OUT_ELF)
 	$(OBJCOPY) $(OUT_ELF) --strip-all -O binary $@
 ifneq ($(VM),)
+	mkdir -p apps/hv/guest/$(APP_NAME)
+	ln -f apps/hv/guest/linux/linux.dtb apps/hv/guest/$(APP_NAME)/$(APP_NAME).dtb
 	@cp $(OUT_BIN) apps/hv/guest/$(APP_NAME)/$(APP_NAME).bin
 endif 
 
