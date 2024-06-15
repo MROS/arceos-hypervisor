@@ -16,6 +16,7 @@ members = [
     "apps/task/yield",
     "apps/task/priority",
     "apps/hv",
+    "apps/loop-print",
 
     "crates/allocator",
     "crates/arm_gic",
