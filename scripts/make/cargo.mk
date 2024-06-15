@@ -66,8 +66,16 @@ ifeq ($(HV), y)
   endif
 endif 
 
+envs := 
+
+ifneq ($(VM),)
+  ifeq ($(ARCH), riscv64)
+    envs += VM_NUMBER=$(VM)
+  endif
+endif 
+
 define cargo_build
-  cargo rustc $(build_args) $(1) -- $(rustc_flags)
+  $(envs) cargo rustc $(build_args) $(1) -- $(rustc_flags)
 endef
 
 define cargo_clippy

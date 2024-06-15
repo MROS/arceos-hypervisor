@@ -14,6 +14,7 @@ fn main() {
     }
     println!("cargo:rerun-if-changed=src/defconfig.toml");
     println!("cargo:rerun-if-env-changed=SMP");
+    println!("cargo:rerun-if-env-changed=VM_NUMBER");
 }
 
 fn add_config(config: &mut Table, key: &str, item: Item, comments: Option<&str>) {
@@ -69,6 +70,11 @@ fn gen_config_rs(platform: &str) -> Result<()> {
         Some("# Number of CPUs"),
     );
 
+    let vm_number = std::env::var("VM_NUMBER")
+        .unwrap_or_else(|_| "0".to_string())
+        .parse::<u32>()
+        .expect("VM_NUMBER 需爲一正整數");
+
     // println!("{config:#x?}");
 
     // Generate config.rs
@@ -93,6 +99,16 @@ fn gen_config_rs(platform: &str) -> Result<()> {
                 Value::String(s) => {
                     writeln!(output, "{comments}")?;
                     let s = s.value();
+                    if var_name == "PHYS_MEMORY_BASE"
+                        || var_name == "KERNEL_BASE_PADDR"
+                        || var_name == "KERNEL_BASE_VADDR"
+                    {
+                        writeln!(
+                            output,
+                            "pub const {var_name}: usize = {s} + 0x1000_0000 * {vm_number};"
+                        )?;
+                        continue;
+                    }
                     if is_num(s) {
                         writeln!(output, "pub const {var_name}: usize = {s};")?;
                     } else {
