@@ -10,6 +10,10 @@ ifeq ($(ARCH), riscv64)
   GUEST_DTB ?= apps/hv/guest/$(GUEST)/$(GUEST).dtb
   GUEST_BIN ?= apps/hv/guest/$(GUEST)/$(GUEST).bin
   GUEST_BIOS ?=
+  ifneq ($(GUEST2),)
+    GUEST_2_DTB ?= apps/hv/guest/$(GUEST2)/$(GUEST2)-2.dtb
+    GUEST_2_BIN ?= apps/hv/guest/$(GUEST2)/$(GUEST2)-2.bin
+  endif
 else ifeq ($(ARCH), x86_64)
   GUEST_DTB ?= 
   GUEST_BIN ?= apps/hv/guest/nimbos/nimbos.bin
@@ -50,6 +54,11 @@ ifeq ($(HV), y)
         -m 3G -smp $(SMP) $(qemu_args-$(ARCH)) \
     	  -device loader,file=$(GUEST_DTB),addr=0x90000000,force-raw=on \
         -device loader,file=$(GUEST_BIN),addr=0x90200000,force-raw=on
+    ifneq ($(GUEST2),)
+      qemu_args-y += \
+          -device loader,file=$(GUEST_2_DTB),addr=0xa0000000,force-raw=on \
+          -device loader,file=$(GUEST_2_BIN),addr=0xa0200000,force-raw=on
+    endif
   else ifeq ($(ARCH), aarch64)
     qemu_args-y := \
         -m 3G -smp $(SMP) $(qemu_args-$(ARCH)) \
