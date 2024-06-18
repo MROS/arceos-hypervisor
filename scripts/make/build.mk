@@ -23,10 +23,16 @@ endif
 
 $(OUT_BIN): _cargo_build $(OUT_ELF)
 	$(OBJCOPY) $(OUT_ELF) --strip-all -O binary $@
-ifneq ($(VM),)
+ifeq ($(VM),1)
 	mkdir -p apps/hv/guest/$(APP_NAME)
+	dtc -I dts -O dtb -o apps/hv/guest/linux/linux.dtb apps/hv/guest/linux/linux.dts
 	ln -f apps/hv/guest/linux/linux.dtb apps/hv/guest/$(APP_NAME)/$(APP_NAME).dtb
 	@cp $(OUT_BIN) apps/hv/guest/$(APP_NAME)/$(APP_NAME).bin
+else ifeq ($(VM),2)
+	mkdir -p apps/hv/guest/$(APP_NAME)
+	dtc -I dts -O dtb -o apps/hv/guest/linux/linux-2.dtb apps/hv/guest/linux/linux-2.dts
+	ln -f apps/hv/guest/linux/linux-2.dtb apps/hv/guest/$(APP_NAME)/$(APP_NAME)-2.dtb
+	@cp $(OUT_BIN) apps/hv/guest/$(APP_NAME)/$(APP_NAME)-2.bin
 endif 
 
 .PHONY: _cargo_build
