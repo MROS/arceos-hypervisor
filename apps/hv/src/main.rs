@@ -52,19 +52,38 @@ fn main(hart_id: usize) {
         // get current percpu
         let pcpu = PerCpu::<HyperCraftHalImpl>::this_cpu();
 
-        // create vcpu
-        let gpt = setup_gpm(0x9000_0000).unwrap();
-        let vcpu = pcpu.create_vcpu(0, 0x9020_0000).unwrap();
-        let mut vcpus = VmCpus::new();
+        // create vcpu 1
+        let gpt1 = setup_gpm(0x9000_0000).unwrap();
+        let vcpu1 = pcpu.create_vcpu(0, 0x9020_0000).unwrap();
 
-        // add vcpu into vm
-        vcpus.add_vcpu(vcpu).unwrap();
-        let mut vm: VM<HyperCraftHalImpl, GuestPageTable> = VM::new(vcpus, gpt).unwrap();
-        vm.init_vcpu(0);
+        // create vm1
+        let mut vm1: VM<HyperCraftHalImpl, GuestPageTable> = {
+            let mut vcpus = VmCpus::new();
+
+            // add vcpu 1 into vm 1
+            vcpus.add_vcpu(vcpu1).unwrap();
+            VM::new(vcpus, gpt1).unwrap()
+        };
+        vm1.init_vcpu(0);
+
+        // create vcpu 2
+        let gpt2 = setup_gpm(0xa000_0000).unwrap();
+        let vcpu2 = pcpu.create_vcpu(0, 0xa020_0000).unwrap();
+
+        // create vma
+        let mut vm2: VM<HyperCraftHalImpl, GuestPageTable> = {
+            let mut vcpus = VmCpus::new();
+
+            // add vcpu 1 into vm 1
+            vcpus.add_vcpu(vcpu2).unwrap();
+            VM::new(vcpus, gpt2).unwrap()
+        };
+        vm2.init_vcpu(0);
 
         // 創建 vmm
         let mut vmm: VMM<HyperCraftHalImpl, GuestPageTable> = VMM::new();
-        vmm.add_vm(vm);
+        vmm.add_vm(vm1);
+        vmm.add_vm(vm2);
 
         // vmm run
         vmm.run(hart_id);
