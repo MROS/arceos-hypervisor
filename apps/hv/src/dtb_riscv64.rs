@@ -27,6 +27,7 @@ pub struct MachineMeta {
 
 impl MachineMeta {
     pub fn parse(dtb: usize) -> Self {
+        // TODO: 讓 parse 返回 Option
         let fdt = unsafe { Fdt::from_ptr(dtb as *const u8) }.unwrap();
         let memory = fdt.memory();
         let mut meta = MachineMeta::default();

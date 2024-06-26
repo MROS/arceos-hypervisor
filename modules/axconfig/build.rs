@@ -15,6 +15,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/defconfig.toml");
     println!("cargo:rerun-if-env-changed=SMP");
     println!("cargo:rerun-if-env-changed=VM_NUMBER");
+    println!("cargo:rerun-if-env-changed=DEVICES");
 }
 
 fn add_config(config: &mut Table, key: &str, item: Item, comments: Option<&str>) {
@@ -75,6 +76,12 @@ fn gen_config_rs(platform: &str) -> Result<()> {
         .parse::<u32>()
         .expect("VM_NUMBER 需爲一正整數");
 
+    let devices = std::env::var("DEVICES")
+        .unwrap_or_else(|_| "0,1,2,3,4,5,6,7".to_string())
+        .split(",")
+        .map(|s| s.parse::<usize>().unwrap())
+        .collect::<Vec<usize>>();
+
     // println!("{config:#x?}");
 
     // Generate config.rs
@@ -122,7 +129,11 @@ fn gen_config_rs(platform: &str) -> Result<()> {
                     }
                     writeln!(output, "{comments}")?;
                     writeln!(output, "pub const {var_name}: &[(usize, usize)] = &[")?;
-                    for r in regions.iter() {
+                    for (i, r) in regions.iter().enumerate() {
+                        // XXX: 不知道為什麼把 i <= 2 的區域拿掉 qemu 會崩潰
+                        if i > 2 && !devices.contains(&i) {
+                            continue;
+                        }
                         let r = r.as_array().unwrap();
                         writeln!(
                             output,

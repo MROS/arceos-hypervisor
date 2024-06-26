@@ -26,8 +26,8 @@ $(OUT_BIN): _cargo_build $(OUT_ELF)
 ifeq ($(VM),1)
 	mkdir -p apps/hv/guest/$(APP_NAME)
 	dtc -I dts -O dtb -o apps/hv/guest/linux/linux.dtb apps/hv/guest/linux/linux.dts
-	ln -f apps/hv/guest/linux/linux.dtb apps/hv/guest/$(APP_NAME)/$(APP_NAME).dtb
-	@cp $(OUT_BIN) apps/hv/guest/$(APP_NAME)/$(APP_NAME).bin
+	ln -f apps/hv/guest/linux/linux.dtb apps/hv/guest/$(APP_NAME)/$(APP_NAME)-1.dtb
+	@cp $(OUT_BIN) apps/hv/guest/$(APP_NAME)/$(APP_NAME)-1.bin
 else ifeq ($(VM),2)
 	mkdir -p apps/hv/guest/$(APP_NAME)
 	dtc -I dts -O dtb -o apps/hv/guest/linux/linux-2.dtb apps/hv/guest/linux/linux-2.dts

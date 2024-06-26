@@ -73,6 +73,11 @@ ifneq ($(VM),)
     envs += VM_NUMBER=$(VM)
   endif
 endif 
+ifneq ($(DEVICES),)
+  ifeq ($(ARCH), riscv64)
+    envs += DEVICES=$(DEVICES)
+  endif
+endif 
 
 define cargo_build
   $(envs) cargo rustc $(build_args) $(1) -- $(rustc_flags)
