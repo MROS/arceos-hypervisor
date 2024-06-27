@@ -52,40 +52,51 @@ fn main(hart_id: usize) {
         // get current percpu
         let pcpu = PerCpu::<HyperCraftHalImpl>::this_cpu();
 
-        // create vcpu 1
-        let gpt1 = setup_gpm(0x9000_0000).unwrap();
-        let vcpu1 = pcpu.create_vcpu(0, 0x9020_0000).unwrap();
-
-        // create vm1
-        let mut vm1: VM<HyperCraftHalImpl, GuestPageTable> = {
-            let mut vcpus = VmCpus::new();
-
-            // add vcpu 1 into vm 1
-            vcpus.add_vcpu(vcpu1).unwrap();
-            VM::new(vcpus, gpt1).unwrap()
-        };
-        vm1.init_vcpu(0);
-
-        // create vcpu 2
-        let gpt2 = setup_gpm(0xa000_0000).unwrap();
-        let vcpu2 = pcpu.create_vcpu(0, 0xa020_0000).unwrap();
-
-        // create vma
-        let mut vm2: VM<HyperCraftHalImpl, GuestPageTable> = {
-            let mut vcpus = VmCpus::new();
-
-            // add vcpu 1 into vm 1
-            vcpus.add_vcpu(vcpu2).unwrap();
-            VM::new(vcpus, gpt2).unwrap()
-        };
-        vm2.init_vcpu(0);
-
-        // 創建 vmm
         let mut vmm: VMM<HyperCraftHalImpl, GuestPageTable> = VMM::new();
-        vmm.add_vm(vm1);
-        vmm.add_vm(vm2);
 
-        // vmm run
+        let base_dtb_address: usize = 0x9000_0000;
+        let base_bin_address: usize = 0x9020_0000;
+        let diff: usize = 0x1000_0000;
+
+        // 偵測各個物理地址上是否被載入虛擬機
+        for i in 0..3 {
+            let dtb_address = base_dtb_address + i * diff;
+            let bin_address = base_bin_address + i * diff;
+
+            let meta = match MachineMeta::parse(dtb_address) {
+                Some(meta) => meta,
+                None => {
+                    // 無法解析 dtb ，代表該區段不存在虛擬機
+                    break;
+                }
+            };
+
+            println!("發現虛擬機 {}", i);
+
+            let gpt = setup_gpm(meta).unwrap();
+
+            println!("創建 vcpu");
+            let vcpu = pcpu.create_vcpu(0, bin_address).unwrap();
+
+            println!("創建 vm");
+            let mut vm: VM<HyperCraftHalImpl, GuestPageTable> = {
+                let mut vcpus = VmCpus::new();
+
+                // add vcpu 1 into vm 1
+                vcpus.add_vcpu(vcpu).unwrap();
+                VM::new(vcpus, gpt).unwrap()
+            };
+
+            println!("初始化 vm 的 vcpu");
+            vm.init_vcpu(0);
+
+            println!("將 vm 加入 vmm");
+            vmm.add_vm(vm);
+
+            println!("加入虛擬機 {} 完成", i);
+        }
+
+        println!("執行 hypervisor");
         vmm.run(hart_id);
     }
     #[cfg(target_arch = "aarch64")]
@@ -142,9 +153,8 @@ fn main(hart_id: usize) {
 }
 
 #[cfg(target_arch = "riscv64")]
-pub fn setup_gpm(dtb: usize) -> Result<GuestPageTable> {
+pub fn setup_gpm(meta: MachineMeta) -> Result<GuestPageTable> {
     let mut gpt = GuestPageTable::new()?;
-    let meta = MachineMeta::parse(dtb);
     if let Some(test) = meta.test_finisher_address {
         gpt.map_region(
             test.base_address,

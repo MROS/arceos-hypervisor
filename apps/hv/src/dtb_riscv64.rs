@@ -26,9 +26,15 @@ pub struct MachineMeta {
 }
 
 impl MachineMeta {
-    pub fn parse(dtb: usize) -> Self {
+    pub fn parse(dtb: usize) -> Option<Self> {
         // TODO: 讓 parse 返回 Option
-        let fdt = unsafe { Fdt::from_ptr(dtb as *const u8) }.unwrap();
+        let fdt = match unsafe { Fdt::from_ptr(dtb as *const u8) } {
+            Ok(fdt) => fdt,
+            Err(err) => {
+                libax::warn!("dtb 地址 {:#x} 無法解析", dtb);
+                return None;
+            }
+        };
         let memory = fdt.memory();
         let mut meta = MachineMeta::default();
         for region in memory.regions() {
@@ -113,6 +119,6 @@ impl MachineMeta {
             }
         }
 
-        meta
+        Some(meta)
     }
 }

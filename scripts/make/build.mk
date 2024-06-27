@@ -33,6 +33,11 @@ else ifeq ($(VM),2)
 	dtc -I dts -O dtb -o apps/hv/guest/linux/linux-2.dtb apps/hv/guest/linux/linux-2.dts
 	ln -f apps/hv/guest/linux/linux-2.dtb apps/hv/guest/$(APP_NAME)/$(APP_NAME)-2.dtb
 	@cp $(OUT_BIN) apps/hv/guest/$(APP_NAME)/$(APP_NAME)-2.bin
+else ifeq ($(VM),3)
+	mkdir -p apps/hv/guest/$(APP_NAME)
+	dtc -I dts -O dtb -o apps/hv/guest/linux/linux-3.dtb apps/hv/guest/linux/linux-3.dts
+	ln -f apps/hv/guest/linux/linux-3.dtb apps/hv/guest/$(APP_NAME)/$(APP_NAME)-3.dtb
+	@cp $(OUT_BIN) apps/hv/guest/$(APP_NAME)/$(APP_NAME)-3.bin
 endif 
 
 .PHONY: _cargo_build

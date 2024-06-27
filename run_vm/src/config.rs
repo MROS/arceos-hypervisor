@@ -41,19 +41,19 @@ pub fn get_vm_list() -> Vec<VirtualMachine> {
         VirtualMachine {
             os: "apps/fs/shell",
             devices: vec![Device::Disk],
-            log: Log::Debug,
-            mode: Mode::Debug,
-        },
-        VirtualMachine {
-            os: "apps/net/httpserver",
-            devices: vec![Device::Net],
             log: Log::Info,
             mode: Mode::Debug,
         },
         // VirtualMachine {
         //     os: "apps/fs/shell",
         //     devices: vec![Device::Disk],
-        //     log: Log::Debug,
+        //     log: Log::Info,
+        //     mode: Mode::Debug,
+        // },
+        // VirtualMachine {
+        //     os: "apps/net/httpserver",
+        //     devices: vec![Device::Net],
+        //     log: Log::Info,
         //     mode: Mode::Debug,
         // },
     ]
